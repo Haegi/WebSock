@@ -26,13 +26,14 @@ push() {
   upload_files
 }
 
-if [ $TRAVIS_BRANCH == "dev" ]; then
+if [ $TRAVIS_BRANCH == "master" ]; then
   if [ -d $1 ] && [ ! -z $1 ]; then
     echo "Changing to directory: $(pwd)/$1"
     pushd $1
-    ls
+      push
     popd
   else
     echo "Using directory: $(pwd)"
+      push
   fi
 fi

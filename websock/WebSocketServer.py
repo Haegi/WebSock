@@ -21,6 +21,7 @@ class WebSocketServer:
     _LOGS_FILE = "ws.log"
     _LOG_IN = "[IN] "
     _LOG_OUT = "[OUT]"
+    MAX_BYTES = 65550
 
     def __init__(self, ip='', port=80, on_data_receive=None, on_connection_open=None, on_connection_close=None, on_server_destruct=None, on_error=None, DEBUG=False):
         self.server = None
@@ -65,10 +66,10 @@ class WebSocketServer:
             self.server.bind((self.ip, self.port))
             self.server.listen(5)
 
-        logging.info("Server is ready to accept")
+        logging.info(f"Server is ready to accept on ('{self.ip}':{self.port})")
         client, address = self.server.accept()
         self.clients[address] = client
-        logging.info("{} CONNECTION: {}".format(WebSocketServer._LOG_IN, client.getsockname()))
+        logging.info("{} CONNECTION: {}".format(WebSocketServer._LOG_IN, client.getpeername()))
 
         if serve_forever:
             client_thread = threading.Thread(target=self._manage_client, args=(client,), daemon=True)
@@ -95,6 +96,7 @@ class WebSocketServer:
 
         address = client.getpeername()
         while address in self.clients:
+            self.payload = ""
             self._recv(client)
 
     def recv(self, client):
@@ -115,7 +117,7 @@ class WebSocketServer:
         """
         try:
             address = client.getpeername()
-            data = client.recv(2048)
+            data = client.recv(WebSocketServer.MAX_BYTES)
         except ConnectionError:
             self.close_client(address, hard_close=True)
             return None
@@ -127,28 +129,38 @@ class WebSocketServer:
             else:
                 raise
         try:
+            fin = (data[FIN[LOW]]&FIN[BIT_MASK])>>FIN[OFFSET]
             valid, data = self._decode_data_frame(data)
         except:
             valid = None
-         
+
         if valid == FrameType.TEXT:
-            logging.info("{} {}: {} - '{}'".format(WebSocketServer._LOG_IN, valid.name, client.getsockname(), data))
+            self.payload += data
+            logging.info("{} {}: {} - length: '{}'".format(WebSocketServer._LOG_IN, valid.name, client.getpeername(), len(self.payload)))
             if user:
-                return data
-            else:
-                self.on_data_receive(client, data)
+                return self.payload
+            elif fin:
+                self.on_data_receive(client, self.payload)
         elif valid == FrameType.CLOSE:
-            logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
-            
+            logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getpeername()))
+            code = 1000
+            app_data = None
+            if data:
+                code = (data[0]<<8 | data[1])
+                if len(data) > 2:
+                    app_data = data[2:].decode()
             # Server sent closing message client connection has already closed
-            if not self.clients[address]:
-                self.close_client(address)
+            if self.clients[address]:
+                self.close_client(address, status_code=code, app_data=app_data)
 
         elif valid == FrameType.PING:
-            logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
-            self._pong(client, data)
+            logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getpeername()))
+            if not fin:
+                self.close_client(address)
+            else:
+                self._pong(client, data)
         elif valid == FrameType.PONG:
-            logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
+            logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getpeername()))
         else:
             # Received Invalid Data Frame
             logging.critical("Received Invalid Data Frame")
@@ -226,8 +238,13 @@ class WebSocketServer:
         :returns: A tuple of (FrameType, String) where the FrameType will be None
         if the data could not be understood.
         """
-        fin = (data[FIN[LOW]]&FIN[BIT_MASK])>>FIN[OFFSET]
         opcode = (data[OPCODE[LOW]]&OPCODE[BIT_MASK])>>OPCODE[OFFSET]
+        rsv1 = (data[RSV1[LOW]]&RSV1[BIT_MASK])>>RSV1[OFFSET]
+        rsv2 = (data[RSV2[LOW]]&RSV2[BIT_MASK])>>RSV2[OFFSET]
+        rsv3 = (data[RSV3[LOW]]&RSV3[BIT_MASK])>>RSV3[OFFSET]
+
+        if rsv1 or rsv2 or rsv3:
+            return (FrameType.CLOSE, None)
 
         # Check that the payload is valid.
         frame_type = [f_type for f_type in FrameType if opcode == f_type]
@@ -241,11 +258,11 @@ class WebSocketServer:
         if payload_len == 126:
             # Read the next 16 bits.
             mask_key_low = PAYLOAD_LEN_EXT_126[HIGH]+1
-            payload_len = int.from_bytes(data[PAYLOAD_LEN_EXT_126[LOW] : PAYLOAD_LEN_EXT_126[HIGH]+1],'big')
+            payload_len = int.from_bytes(data[PAYLOAD_LEN_EXT_126[LOW] : PAYLOAD_LEN_EXT_126[HIGH]+1], 'big')
         elif payload_len == 127:
             # Read the next 64 bits.
             mask_key_low = PAYLOAD_LEN_EXT_127[HIGH]+1
-            payload_len = int.from_bytes(data[PAYLOAD_LEN_EXT_127[LOW] : PAYLOAD_LEN_EXT_127[HIGH]+1],'big')
+            payload_len = int.from_bytes(data[PAYLOAD_LEN_EXT_127[LOW] : PAYLOAD_LEN_EXT_127[HIGH]+1], 'big')
 
         mask = (data[MASK[LOW]]&MASK[BIT_MASK])>>MASK[OFFSET]
         mask_key_high = mask_key_low + MASK_KEY[LEN] if mask else mask_key_low
@@ -258,7 +275,7 @@ class WebSocketServer:
         else:
             payload = data[mask_key_high: mask_key_high+payload_len]
 
-        return (frame_type, bytes(payload).decode() if frame_type != FrameType.CLOSE else None)
+        return (frame_type, bytes(payload).decode() if frame_type != FrameType.CLOSE else bytes(payload))
 
     @staticmethod
     def _encode_data_frame(frame_type, data):
@@ -269,7 +286,10 @@ class WebSocketServer:
 
         :returns: The formatted data frame.
         """
-        data = data.encode() if data else None
+        if data:
+            data = data.encode() if type(data) is not bytes else data
+        else:
+            data = None
 
         fin = 1  # No fragmentation support yet.
         mask = 0  # Server never masks data.
@@ -295,7 +315,7 @@ class WebSocketServer:
             frame.extend(data)    
         return bytes(frame)
 
-    def _initiate_close(self, client, status_code=None, app_data=None):
+    def _initiate_close(self, client, status_code=1000, app_data=None):
         """Sends the first Closing frame to the client.
 
         :param client: The Client connection to close.
@@ -305,7 +325,7 @@ class WebSocketServer:
         # Concatenate the status_code and app_data into one byte string if provided.
         payload_bytes = []
         if status_code is not None:
-            status_bytes = bytearray([status_code & 255, (status_code >> 8) & 255])
+            status_bytes = bytearray([(status_code >> 8) & 255, status_code & 255])
             payload_bytes.append(bytes(status_bytes))
 
         if app_data is not None:
@@ -322,7 +342,7 @@ class WebSocketServer:
         """
         self._initiate_close(client)
 
-    def close_client(self, address, status_code=None, app_data=None, hard_close=False):
+    def close_client(self, address, status_code=1000, app_data=None, hard_close=False):
         """Close the connection with a client.
 
         :param address: The client address to close the connection with.

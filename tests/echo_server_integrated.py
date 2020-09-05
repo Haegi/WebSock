@@ -2,6 +2,7 @@ import threading
 import unittest
 import sys
 import os
+import time
 try:
     import thread
 except ImportError:
@@ -25,11 +26,11 @@ class TestIntegrated(unittest.TestCase):
         https://github.com/websocket-client/websocket-client/blob/master/examples/echoapp_client.py
     """
 
-    def test_echo_server_single_client(self):
-        
+    @classmethod
+    def setUpClass(self):
+
         def on_data_receive(client, data):
             """Called by the WebSocketServer when data is received."""
-            data += '!'
             server.send(client, data)
 
         def on_error(exception):
@@ -38,16 +39,38 @@ class TestIntegrated(unittest.TestCase):
             raise exception
 
         server = WebSocketServer("127.0.0.1", 8467, on_data_receive=on_data_receive, on_error=on_error)
-        server_thread = threading.Thread(target=server.serve_once, args=(), daemon=True)
+        server_thread = threading.Thread(target=server.serve_forever, args=(), daemon=True)
         server_thread.start()
 
-        print('Connected')
+    def test_echo_server_single_client(self):
         ws = create_connection("ws://localhost:8467")
         ws.send("Hello, World")
         result = ws.recv()
         ws.close()
 
-        self.assertEqual(result, "Hello, World!")
+        self.assertEqual(result, "Hello, World")
+
+    def test_echo_server_65535_message(self):
+        ws = create_connection("ws://localhost:8467")
+        payload = "*" * 65535
+        ws.send(payload)
+        result = ws.recv()
+        time.sleep(1)
+        ws.close()
+
+        self.assertEqual(len(result), len(payload))
+        self.assertEqual(result, payload)
+
+    def test_echo_server_65536_message(self):
+        ws = create_connection("ws://localhost:8467")
+        payload = "*" * 65536
+        ws.send(payload)
+        result = ws.recv()
+        time.sleep(1)
+        ws.close()
+
+        self.assertEqual(len(result), len(payload))
+        self.assertEqual(result, payload)
 
 
 if __name__ == "__main__":

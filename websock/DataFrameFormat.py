@@ -45,6 +45,33 @@ FIN = {
     'OFFSET': 7
 }
 
+RSV1 = {
+    'LABEL': "Rsv1",
+    'LOW_BYTE': 0,
+    'HIGH_BYTE': 0,
+    'BIT_MASK': 64,
+    'BYTE_LENGTH': 1,
+    'OFFSET': 6
+}
+
+RSV2 = {
+    'LABEL': "Rsv2",
+    'LOW_BYTE': 0,
+    'HIGH_BYTE': 0,
+    'BIT_MASK': 32,
+    'BYTE_LENGTH': 1,
+    'OFFSET': 5
+}
+
+RSV3 = {
+    'LABEL': "Rsv3",
+    'LOW_BYTE': 0,
+    'HIGH_BYTE': 0,
+    'BIT_MASK': 16,
+    'BYTE_LENGTH': 1,
+    'OFFSET': 4
+}
+
 OPCODE = {
     'LABEL': "OpCode",
     'LOW_BYTE': 0,

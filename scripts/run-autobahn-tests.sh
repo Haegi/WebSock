@@ -2,7 +2,7 @@
 set -xeuo pipefail
 
 # Install from setup.py
-pip install -e .
+pip3 install -e .
 mkdir report
 # Run WebSock in background
 python scripts/autobahn-test.py &

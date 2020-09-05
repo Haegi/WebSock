@@ -1,5 +1,14 @@
 class WebSocketInvalidHandshake(Exception):
-    """ The client and server were unable to complete the handshake protocol
+    """ The client and server were unable to complete the handshake protocol.
+    """
+
+    def __init__(self, message, client):
+        super().__init__(message)
+        self.client = client
+
+
+class WebSocketEmptyHandshakeToken(Exception):
+    """ The received token was empty.
     """
 
     def __init__(self, message, client):
@@ -8,7 +17,7 @@ class WebSocketInvalidHandshake(Exception):
 
 
 class WebSocketInvalidDataFrame(Exception):
-    """ The server was unable to parse the data frame
+    """ The server was unable to parse the data frame.
     """
 
     def __init__(self, message, client):
