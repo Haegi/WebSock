@@ -1,0 +1,169 @@
+{
+   "agent": "UnknownServer",
+   "behavior": "OK",
+   "behaviorClose": "FAILED",
+   "case": 62,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send text Message fragmented into 2 fragments, with both frame opcodes set to text, sent in one chop.",
+   "droppedByMe": false,
+   "duration": 1003,
+   "expectation": "The connection is failed immediately, since all data frames after the initial data frame must have opcode 0.",
+   "expected": {
+      "OK": []
+   },
+   "expectedClose": {
+      "closeCode": [
+         1002
+      ],
+      "closedByMe": false,
+      "requireClean": false
+   },
+   "failedByMe": true,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.8.1-0.10.9\r\nHost: 127.0.0.1:9010\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: ww4WXYPQ0tKo0cahiKqlew==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: 6MpDY4lE8OMRwc4mUcN6HqIhGHA=\r\n\r\n",
+   "id": "5.18",
+   "isServer": false,
+   "localCloseCode": 1001,
+   "localCloseReason": "Going Away",
+   "received": [],
+   "remoteCloseCode": 1001,
+   "remoteCloseReason": "Going Away",
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events match at least one expected.",
+   "resultClose": "The connection was failed by the wrong endpoint",
+   "rxFrameStats": {
+      "8": 1
+   },
+   "rxOctetStats": {
+      "14": 1,
+      "129": 1
+   },
+   "started": "2020-09-26T10:06:45.163Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "1": 2,
+      "8": 1
+   },
+   "txOctetStats": {
+      "15": 2,
+      "18": 1,
+      "240": 1
+   },
+   "wasClean": true,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": null,
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e382e312d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            129,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730d0a557067726164653a20776562736f636b65740d0a436f6e6e656374696f6e ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            9,
+            "fragment1"
+         ],
+         1,
+         false,
+         0,
+         "9ef39d83",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "01899ef39d83f881fce4f396f3f7af"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "fragment2"
+         ],
+         1,
+         true,
+         0,
+         "caa2f8bd",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "8189caa2f8bdacd099daa7c796c9f8"
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ],
+      [
+         "KLE"
+      ],
+      [
+         "TF",
+         [
+            12,
+            "0x03e9476f696e672041776179"
+         ],
+         8,
+         true,
+         0,
+         "e1df0e0b",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            18,
+            "888ce1df0e0be236496488b1692ba0a86f72"
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            14,
+            "880c03e9476f696e672041776179"
+         ]
+      ],
+      [
+         "RF",
+         [
+            12,
+            "0x03e9476f696e672041776179"
+         ],
+         8,
+         true,
+         0,
+         false,
+         null
+      ]
+   ]
+}

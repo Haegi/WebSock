@@ -1,0 +1,221 @@
+{
+   "agent": "UnknownServer",
+   "behavior": "NON-STRICT",
+   "behaviorClose": "FAILED",
+   "case": 59,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send text Message fragmented into 2 fragments, then Continuation Frame with FIN = false where there is nothing to continue, then unfragmented Text Message, all sent in one chop.",
+   "droppedByMe": false,
+   "duration": 1002,
+   "expectation": "The connection is failed immediately, since there is no message to continue.",
+   "expected": {
+      "NON-STRICT": [],
+      "OK": [
+         [
+            "message",
+            "fragment1fragment2",
+            false
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1002
+      ],
+      "closedByMe": false,
+      "requireClean": false
+   },
+   "failedByMe": true,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.8.1-0.10.9\r\nHost: 127.0.0.1:9010\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: 2SwkXRpKX5G94w2RN42Wvg==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: iYxHKIv420DjyBp/KFpq+faju5g=\r\n\r\n",
+   "id": "5.15",
+   "isServer": false,
+   "localCloseCode": 1001,
+   "localCloseReason": "Going Away",
+   "received": [],
+   "remoteCloseCode": 1001,
+   "remoteCloseReason": "Going Away",
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events match at least one expected.",
+   "resultClose": "The connection was failed by the wrong endpoint",
+   "rxFrameStats": {
+      "8": 1
+   },
+   "rxOctetStats": {
+      "14": 1,
+      "129": 1
+   },
+   "started": "2020-09-26T10:06:44.149Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "0": 2,
+      "1": 2,
+      "8": 1
+   },
+   "txOctetStats": {
+      "15": 4,
+      "18": 1,
+      "240": 1
+   },
+   "wasClean": true,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": null,
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e382e312d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            129,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730d0a557067726164653a20776562736f636b65740d0a436f6e6e656374696f6e ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            9,
+            "fragment1"
+         ],
+         1,
+         false,
+         0,
+         "7063e3ac",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "01897063e3ac161182cb1d068dd841"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "fragment2"
+         ],
+         0,
+         true,
+         0,
+         "f5aeddf5",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "8089f5aeddf593dcbc9298cbb381c7"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "fragment3"
+         ],
+         0,
+         false,
+         0,
+         "bf01a89f",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "0089bf01a89fd973c9f8d264c6eb8c"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "fragment4"
+         ],
+         1,
+         true,
+         0,
+         "401243ba",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "8189401243ba266022dd2d772dce74"
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ],
+      [
+         "KLE"
+      ],
+      [
+         "TF",
+         [
+            12,
+            "0x03e9476f696e672041776179"
+         ],
+         8,
+         true,
+         0,
+         "cdc03b11",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            18,
+            "888ccdc03b11ce297c7ea4ae5c318cb75a68"
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            14,
+            "880c03e9476f696e672041776179"
+         ]
+      ],
+      [
+         "RF",
+         [
+            12,
+            "0x03e9476f696e672041776179"
+         ],
+         8,
+         true,
+         0,
+         false,
+         null
+      ]
+   ]
+}
