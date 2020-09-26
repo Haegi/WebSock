@@ -95,8 +95,8 @@ class WebSocketServer:
         self.on_connection_open(client)
 
         address = client.getpeername()
+        self.payload = ""
         while address in self.clients:
-            self.payload = ""
             self._recv(client)
 
     def recv(self, client):
@@ -156,7 +156,7 @@ class WebSocketServer:
         elif valid == FrameType.PING:
             logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getpeername()))
             if not fin:
-                self.close_client(address)
+                self.close_client(address, status_code=1002)
             else:
                 self._pong(client, data)
         elif valid == FrameType.PONG:
@@ -302,7 +302,7 @@ class WebSocketServer:
         payload_len = len(data) if data else 0
         if payload_len < 126:
             frame.append((mask<<MASK[OFFSET])^payload_len)
-        elif payload_len < 65535 : # Can the length fit in 16 bits?
+        elif payload_len <= 65535 : # Can the length fit in 16 bits?
             frame.append((mask<<MASK[OFFSET])^126)
             for i in range(PAYLOAD_LEN_EXT_126[LEN]-1,-1,-1):
                 frame.append((payload_len>>(i*8))&255)
@@ -310,9 +310,9 @@ class WebSocketServer:
             frame.append((mask<<MASK[OFFSET])^127)
             for i in range(PAYLOAD_LEN_EXT_127[LEN]-1,-1,-1):
                 frame.append((payload_len>>(i*8))&255)
-        
+
         if payload_len > 0:
-            frame.extend(data)    
+            frame.extend(data)
         return bytes(frame)
 
     def _initiate_close(self, client, status_code=1000, app_data=None):
